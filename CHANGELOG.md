@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.0.2 - CI badge fix and workflow consistency checks
+
+- fix: pin README GitHub Actions badges to explicit branch and event parameters so pull request failures are visible instead of inheriting the default-branch push status
+- ci: add repository verification step that checks changelog-driven version sync and README badge freshness in GitHub Actions
+- ci: align publish validation with the same repository verification gate used in CI
+- chore: make local `prepublishOnly` enforce the same repo verification rules as CI
+- chore: stop the publish workflow from creating git tags automatically; release tagging is now manual
+
 ## v1.0.1 - Docs consolidation, changelog-driven versioning, and repo automation
 
 - docs: merge `DATA.md` into `README.md` and remove the separate data reference file

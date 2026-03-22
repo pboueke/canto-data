@@ -1,0 +1,37 @@
+#!/bin/sh
+
+VERSION=$(grep -m1 '^## v' CHANGELOG.md | sed 's/^## v\([^ ]*\).*/\1/')
+if [ -n "$VERSION" ]; then
+  PKG_VERSION=$(node -p "require('./package.json').version")
+  if [ "$VERSION" != "$PKG_VERSION" ]; then
+    sed -i "s/\"version\": \"$PKG_VERSION\"/\"version\": \"$VERSION\"/" package.json
+    git add package.json
+  fi
+
+  sed -i "s/version-[0-9.]*-/version-$VERSION-/" README.md
+fi
+
+TEST_OUTPUT=$(npm run test:ci -- --coverageReporters=text-summary 2>&1)
+TESTS_LINE=$(printf '%s\n' "$TEST_OUTPUT" | sed -nE 's/^Tests:[[:space:]]+([0-9]+) passed,[[:space:]]+([0-9]+) total/\1 \2/p' | tail -n1)
+TESTS_PASSED=$(printf '%s\n' "$TESTS_LINE" | cut -d' ' -f1)
+TESTS_TOTAL=$(printf '%s\n' "$TESTS_LINE" | cut -d' ' -f2)
+COVERAGE=$(printf '%s\n' "$TEST_OUTPUT" | sed -nE 's/^Statements[[:space:]]*:[[:space:]]*([0-9.]+)%.*/\1/p' | tail -n1)
+
+if [ -n "$TESTS_PASSED" ] && [ -n "$TESTS_TOTAL" ]; then
+  sed -i "s/tests-[0-9]*%2F[0-9]*%20passed/tests-${TESTS_PASSED}%2F${TESTS_TOTAL}%20passed/" README.md
+fi
+
+if [ -n "$COVERAGE" ]; then
+  COV_INT=$(printf "%.0f" "$COVERAGE")
+  if [ "$COV_INT" -ge 90 ]; then
+    COV_COLOR="brightgreen"
+  elif [ "$COV_INT" -ge 70 ]; then
+    COV_COLOR="yellow"
+  else
+    COV_COLOR="red"
+  fi
+  sed -i "s/coverage-[0-9]*%25-[a-z]*/coverage-${COV_INT}%25-${COV_COLOR}/" README.md
+fi
+
+git add README.md
+npx lint-staged

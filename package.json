@@ -1,6 +1,6 @@
 {
   "name": "canto-data",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Canto journal data model — types, validation, versioning, and format utilities",
   "license": "MIT",
   "main": "dist/index.js",
@@ -40,6 +40,9 @@
     "test": "jest",
     "test:coverage": "jest --coverage",
     "test:ci": "jest --coverage --ci",
+    "format": "prettier --write \"**/*.{ts,json,md}\"",
+    "format:check": "prettier --check \"**/*.{ts,json,md}\"",
+    "prepare": "husky",
     "prepublishOnly": "npm run build && npm test"
   },
   "keywords": [
@@ -58,8 +61,16 @@
   },
   "devDependencies": {
     "@types/jest": "^30.0.0",
+    "husky": "^9.1.7",
     "jest": "^30.3.0",
+    "lint-staged": "^16.3.3",
+    "prettier": "^3.8.1",
     "ts-jest": "^29.4.6",
     "typescript": "^5.9.3"
+  },
+  "lint-staged": {
+    "*.{ts,json,md}": [
+      "prettier --write"
+    ]
   }
 }

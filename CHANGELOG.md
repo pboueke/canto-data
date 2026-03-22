@@ -1,5 +1,9 @@
 # Changelog
 
+## v1.0.3 - Remove CI badges from README
+
+- docs: remove GitHub Actions CI badges from the README while keeping version, test, and coverage badges
+
 ## v1.0.2 - CI badge fix and workflow consistency checks
 
 - fix: pin README GitHub Actions badges to explicit branch and event parameters so pull request failures are visible instead of inheriting the default-branch push status

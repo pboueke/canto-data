@@ -3,11 +3,9 @@
 Data model library for [Canto](https://github.com/pboueke/canto), a private encrypted journaling app.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-![Version](https://img.shields.io/badge/version-1.0.2-green)
+![Version](https://img.shields.io/badge/version-1.0.3-green)
 ![Tests](https://img.shields.io/badge/tests-156%2F156%20passed-brightgreen)
 ![Coverage](https://img.shields.io/badge/coverage-100%25-brightgreen)
-[![CI Main](https://github.com/pboueke/canto-data/actions/workflows/ci.yml/badge.svg?branch=main&event=push)](https://github.com/pboueke/canto-data/actions/workflows/ci.yml)
-[![CI PR](https://github.com/pboueke/canto-data/actions/workflows/ci.yml/badge.svg?event=pull_request)](https://github.com/pboueke/canto-data/actions/workflows/ci.yml)
 
 `canto-data` provides TypeScript types, runtime validation, schema versioning, migration infrastructure, and export format utilities for Canto journals.
 

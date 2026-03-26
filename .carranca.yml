@@ -1,0 +1,71 @@
+# .carranca.yml — carranca project configuration
+# See: https://github.com/pboueke/carranca
+
+agents:
+  - name: claude
+    adapter: claude
+    command: claude
+
+  - name: codex
+    adapter: codex
+    command: codex
+
+  - name: opencode
+    adapter: opencode
+    command: opencode
+
+  - name: reviewer
+    adapter: stdin
+    command: bash /workspace/_review.sh
+
+# Container runtime settings
+runtime:
+  engine: auto
+  network: true
+  # Fine-grained network policy (replaces boolean; requires yq):
+  # network:
+  #   default: deny
+  #   allow:
+  #     - "*.anthropic.com:443"
+  #     - "registry.npmjs.org:443"
+  # Extra container runtime flags for the agent container (e.g. --gpus all)
+  # extra_flags: --gpus all
+  # Extra container runtime flags for the logger container
+  # logger_extra_flags:
+  # seccomp_profile: default         # "default" (carranca built-in), "unconfined", or absolute path
+  # apparmor_profile:                # AppArmor profile name (must be loaded); "unconfined" to disable
+  # cap_drop_all: true              # Drop all Linux capabilities (--cap-drop ALL)
+  # read_only: true                 # Read-only root filesystem (--read-only + tmpfs)
+  # Linux capabilities for the agent container (allowlist after cap_drop_all)
+  # cap_add:
+  #   - SYS_PTRACE
+
+# Persistent volumes for the agent container
+volumes:
+  cache: true                     # Cache agent memory, config, session across runs
+  # extra:                        # Custom volume mounts (host:container[:mode])
+  #   - ~/docs:/reference:ro
+
+policy:
+  docs_before_code: warn              # warn, enforce, or off — git pre-commit hook
+  tests_before_impl: warn             # warn, enforce, or off — git pre-commit hook
+  # max_duration: 3600                # Kill agent after N seconds (0 = no limit)
+  # resource_limits:                  # Requires yq
+  #   memory: "2g"
+  #   cpus: "2.0"
+  #   pids: 256
+  # filesystem:                       # Requires yq
+  #   enforce_watched_paths: false    # Make watched_paths read-only
+
+# observability:
+#   independent_observer: false    # Run execve/network monitoring in independent sidecar
+
+# Environment variables forwarded into agent containers
+environment:
+  passthrough:
+    - OPENAI_API_KEY
+
+watched_paths:
+  - .env
+  - secrets/
+  - "*.key"

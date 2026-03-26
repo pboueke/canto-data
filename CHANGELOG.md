@@ -1,5 +1,12 @@
 # Changelog
 
+## v1.0.4 - Carranca CI and container configuration
+
+- ci: add GitHub Actions PR review workflow using carranca-sandboxed AI reviewer
+- chore: add claude, opencode, and reviewer agents to carranca configuration
+- chore: add environment passthrough for OPENAI_API_KEY in carranca config
+- chore: install claude-code, opencode-ai, and python3 in the carranca container
+
 ## v1.0.3 - Remove CI badges from README
 
 - docs: remove GitHub Actions CI badges from the README while keeping version, test, and coverage badges

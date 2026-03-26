@@ -3,7 +3,7 @@
 Data model library for [Canto](https://github.com/pboueke/canto), a private encrypted journaling app.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-![Version](https://img.shields.io/badge/version-1.0.3-green)
+![Version](https://img.shields.io/badge/version-1.0.4-green)
 ![Tests](https://img.shields.io/badge/tests-156%2F156%20passed-brightgreen)
 ![Coverage](https://img.shields.io/badge/coverage-100%25-brightgreen)
 

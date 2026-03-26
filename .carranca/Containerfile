@@ -32,7 +32,10 @@ RUN npm install -g @openai/codex
 RUN npm install -g @anthropic-ai/claude-code
 
 # OpenCode CLI
-RUN npm install -g opencode-ai
+RUN curl -fsSL https://opencode.ai/install | bash -s -- --no-modify-path && \
+    mv /root/.opencode/bin/opencode /usr/local/bin/opencode && \
+    chmod 0755 /usr/local/bin/opencode && \
+    rm -rf /root/.opencode
 # ──────────────────────────────────────────────
 
 

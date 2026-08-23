@@ -127,6 +127,8 @@ export function isChunkedAttachmentContent(
     (o.chunkSize as number) > 0 &&
     Number.isSafeInteger(o.chunkCount) &&
     (o.chunkCount as number) >= 0 &&
+    (o.generation === undefined ||
+      (typeof o.generation === "string" && o.generation.length > 0)) &&
     o.chunkCount ===
       Math.ceil((o.byteLength as number) / (o.chunkSize as number))
   );
@@ -241,6 +243,12 @@ export function validateChunkedAttachmentContent(
     );
   }
   checkNonNegativeSafeInteger(`${path}.chunkCount`, o.chunkCount);
+  if (o.generation !== undefined) {
+    checkString(`${path}.generation`, o.generation);
+    if ((o.generation as string).length === 0) {
+      throw new ValidationError(`${path}.generation`, "non-empty string", "");
+    }
+  }
 
   const expectedChunkCount = Math.ceil(
     (o.byteLength as number) / (o.chunkSize as number),

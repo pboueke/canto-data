@@ -16,7 +16,7 @@ describe("migrateIfNeeded", () => {
   test('treats missing version as "0.16.0" and migrates to current', () => {
     const data = { foo: "bar" };
     const result = migrateIfNeeded(data, undefined);
-    // Missing version defaults to "0.16.0", which migrates through 0.17.0 to 0.18.0.
+    // Missing version defaults to "0.16.0", which migrates through 0.17.0 to 0.19.0.
     expect(result.migrated).toBe(true);
     expect(result.fromVersion).toBe("0.16.0");
     expect(result.toVersion).toBe(SCHEMA_VERSION);
@@ -28,12 +28,23 @@ describe("migrateIfNeeded", () => {
     );
   });
 
-  test("migration registry contains a contiguous v0.16.0 → v0.18.0 path", () => {
-    expect(MIGRATIONS).toHaveLength(2);
+  test("keeps existing 0.18.0 data unchanged through the additive generation migration", () => {
+    const data = {
+      pages: [{ images: [{ content: { format: "canto-chunked-v1" } }] }],
+    };
+    const result = migrateIfNeeded(data, "0.18.0");
+    expect(result.data).toBe(data);
+    expect(result.toVersion).toBe("0.19.0");
+  });
+
+  test("migration registry contains a contiguous v0.16.0 → v0.19.0 path", () => {
+    expect(MIGRATIONS).toHaveLength(3);
     expect(MIGRATIONS[0].from).toBe("0.16.0");
     expect(MIGRATIONS[0].to).toBe("0.17.0");
     expect(MIGRATIONS[1].from).toBe("0.17.0");
     expect(MIGRATIONS[1].to).toBe("0.18.0");
+    expect(MIGRATIONS[2].from).toBe("0.18.0");
+    expect(MIGRATIONS[2].to).toBe("0.19.0");
   });
 });
 
@@ -138,7 +149,7 @@ describe("migration chain (with mock migrations)", () => {
   });
 });
 
-describe("v0.16.0 → v0.18.0 migrations", () => {
+describe("v0.16.0 → v0.19.0 migrations", () => {
   test("removes showMarkdownPlaceholder from settings", () => {
     const oldData = {
       settings: {
@@ -174,13 +185,13 @@ describe("v0.16.0 → v0.18.0 migrations", () => {
     expect(result.migrated).toBe(true);
     expect(result.data).toBe(legacyData);
     expect(result.fromVersion).toBe("0.17.0");
-    expect(result.toVersion).toBe("0.18.0");
+    expect(result.toVersion).toBe("0.19.0");
     expect(
       (legacyData.pages[0].images[0] as Record<string, unknown>).content,
     ).toBeUndefined();
   });
 
-  test("full v0.16.0 → v0.18.0 chain keeps legacy attachments descriptor-absent", () => {
+  test("full v0.16.0 → v0.19.0 chain keeps legacy attachments descriptor-absent", () => {
     const legacyData = {
       settings: { sort: "descending", showMarkdownPlaceholder: true },
       pages: [
@@ -196,7 +207,7 @@ describe("v0.16.0 → v0.18.0 migrations", () => {
       Record<string, unknown>
     >;
 
-    expect(result.toVersion).toBe("0.18.0");
+    expect(result.toVersion).toBe("0.19.0");
     expect(settings.showMarkdownPlaceholder).toBeUndefined();
     expect(
       (pages[0].files as Array<Record<string, unknown>>)[0].content,

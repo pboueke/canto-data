@@ -124,8 +124,13 @@ describe("type guards", () => {
     ).toBe(true);
   });
 
-  test("isChunkedAttachmentContent accepts a valid descriptor", () => {
+  test("isChunkedAttachmentContent accepts a valid descriptor with an optional generation", () => {
     expect(isChunkedAttachmentContent(makeChunkedContent())).toBe(true);
+    expect(
+      isChunkedAttachmentContent(
+        makeChunkedContent({ generation: "generation-1" }),
+      ),
+    ).toBe(true);
   });
 
   test("isChunkedAttachmentContent rejects malformed descriptors", () => {
@@ -142,6 +147,12 @@ describe("type guards", () => {
     ).toBe(false);
     expect(
       isChunkedAttachmentContent(makeChunkedContent({ chunkCount: 2 })),
+    ).toBe(false);
+    expect(
+      isChunkedAttachmentContent(makeChunkedContent({ generation: "" })),
+    ).toBe(false);
+    expect(
+      isChunkedAttachmentContent(makeChunkedContent({ generation: 1 })),
     ).toBe(false);
   });
 
@@ -236,7 +247,11 @@ describe("structural validators", () => {
     expect(validateAttachment(makeAttachment({ size: 1024 }))).toBeDefined();
     expect(validateAttachment(makeAttachment())).toBeDefined();
     expect(
-      validateAttachment(makeAttachment({ content: makeChunkedContent() })),
+      validateAttachment(
+        makeAttachment({
+          content: makeChunkedContent({ generation: "generation-1" }),
+        }),
+      ),
     ).toBeDefined();
   });
 
@@ -260,6 +275,7 @@ describe("structural validators", () => {
       [makeChunkedContent({ byteLength: -1 }), "content.byteLength"],
       [makeChunkedContent({ chunkSize: 0 }), "content.chunkSize"],
       [makeChunkedContent({ chunkSize: -1 }), "content.chunkSize"],
+      [makeChunkedContent({ generation: "" }), "content.generation"],
       [makeChunkedContent({ chunkSize: 1.5 }), "content.chunkSize"],
       [
         makeChunkedContent({ chunkSize: Number.MAX_SAFE_INTEGER + 1 }),

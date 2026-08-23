@@ -7,8 +7,8 @@ import {
 } from "../version";
 
 describe("SCHEMA_VERSION", () => {
-  test("is schema 0.18.0 and a valid semver string", () => {
-    expect(SCHEMA_VERSION).toBe("0.18.0");
+  test("is schema 0.19.0 and a valid semver string", () => {
+    expect(SCHEMA_VERSION).toBe("0.19.0");
     expect(SCHEMA_VERSION).toMatch(/^\d+\.\d+\.\d+$/);
   });
 });

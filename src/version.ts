@@ -1,5 +1,5 @@
 /** Current Canto journal schema version (semver). */
-export const SCHEMA_VERSION = "0.18.0";
+export const SCHEMA_VERSION = "0.19.0";
 
 /** Parse a semver string into [major, minor, patch]. Throws on invalid format. */
 function parseSemver(v: string): [number, number, number] {

@@ -1,5 +1,10 @@
 # Changelog
 
+## v1.2.0 - Atomic chunk generations
+
+- feat: add optional `Attachment.content.generation` so remote chunk generations can publish atomically without overwriting the previously published attachment
+- feat: advance schema to `0.19.0` with a no-op `0.18.0 → 0.19.0` migration
+
 ## v1.1.0 - Chunked attachment-content contract
 
 - feat: add an optional, validated `Attachment.content` descriptor for `canto-chunked-v1` metadata while preserving legacy monolithic attachments

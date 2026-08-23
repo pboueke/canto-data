@@ -21,6 +21,11 @@ export interface ChunkedAttachmentContent {
   chunkSize: number;
   /** Number of ordered chunks. */
   chunkCount: number;
+  /**
+   * Opaque generation of the remotely published chunk set. Absent descriptors
+   * use the original attachment-id/index addressing for backwards compatibility.
+   */
+  generation?: string;
 }
 
 /** Extensible attachment-content descriptor union. */

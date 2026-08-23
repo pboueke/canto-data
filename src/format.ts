@@ -1,7 +1,7 @@
-import type { Page, Attachment } from './types';
-import { SCHEMA_VERSION } from './version';
-import { ValidationError } from './validation';
-import { validatePage } from './validation';
+import type { Page, Attachment, AttachmentContent } from "./types";
+import { SCHEMA_VERSION } from "./version";
+import { ValidationError } from "./validation";
+import { validatePage } from "./validation";
 
 // ---------------------------------------------------------------------------
 // Export manifest
@@ -29,7 +29,9 @@ export interface BuildManifestOptions {
 }
 
 /** Create an ExportManifest with the current SCHEMA_VERSION. */
-export function buildExportManifest(opts: BuildManifestOptions): ExportManifest {
+export function buildExportManifest(
+  opts: BuildManifestOptions,
+): ExportManifest {
   return {
     version: 1,
     schemaVersion: SCHEMA_VERSION,
@@ -51,37 +53,54 @@ export function parseManifest(json: string): ExportManifest {
   try {
     raw = JSON.parse(json);
   } catch {
-    throw new ValidationError('manifest', 'valid JSON', 'parse error');
+    throw new ValidationError("manifest", "valid JSON", "parse error");
   }
 
-  if (!raw || typeof raw !== 'object' || Array.isArray(raw)) {
-    throw new ValidationError('manifest', 'object', typeof raw);
+  if (!raw || typeof raw !== "object" || Array.isArray(raw)) {
+    throw new ValidationError("manifest", "object", typeof raw);
   }
 
   const o = raw as Record<string, unknown>;
 
   if (o.version !== 1) {
-    throw new ValidationError('manifest.version', '1', String(o.version));
+    throw new ValidationError("manifest.version", "1", String(o.version));
   }
 
-  if (typeof o.appVersion !== 'string') {
-    throw new ValidationError('manifest.appVersion', 'string', typeof o.appVersion);
+  if (typeof o.appVersion !== "string") {
+    throw new ValidationError(
+      "manifest.appVersion",
+      "string",
+      typeof o.appVersion,
+    );
   }
 
-  if (typeof o.exportDate !== 'string') {
-    throw new ValidationError('manifest.exportDate', 'string', typeof o.exportDate);
+  if (typeof o.exportDate !== "string") {
+    throw new ValidationError(
+      "manifest.exportDate",
+      "string",
+      typeof o.exportDate,
+    );
   }
 
-  if (typeof o.encrypted !== 'boolean') {
-    throw new ValidationError('manifest.encrypted', 'boolean', typeof o.encrypted);
+  if (typeof o.encrypted !== "boolean") {
+    throw new ValidationError(
+      "manifest.encrypted",
+      "boolean",
+      typeof o.encrypted,
+    );
   }
 
-  if (typeof o.journalTitle !== 'string') {
-    throw new ValidationError('manifest.journalTitle', 'string', typeof o.journalTitle);
+  if (typeof o.journalTitle !== "string") {
+    throw new ValidationError(
+      "manifest.journalTitle",
+      "string",
+      typeof o.journalTitle,
+    );
   }
 
   // Legacy manifests don't have schemaVersion — default to "0.16.0"
-  const schemaVersion = typeof o.schemaVersion === 'string' ? o.schemaVersion : '0.16.0';
+  const schemaVersion =
+    typeof o.schemaVersion === "string" ? o.schemaVersion : "0.16.0";
 
   return {
     version: 1,
@@ -90,8 +109,10 @@ export function parseManifest(json: string): ExportManifest {
     exportDate: o.exportDate as string,
     encrypted: o.encrypted as boolean,
     journalTitle: o.journalTitle as string,
-    ...(typeof o.salt === 'string' ? { salt: o.salt } : {}),
-    ...(typeof o.kdfIterations === 'number' ? { kdfIterations: o.kdfIterations } : {}),
+    ...(typeof o.salt === "string" ? { salt: o.salt } : {}),
+    ...(typeof o.kdfIterations === "number"
+      ? { kdfIterations: o.kdfIterations }
+      : {}),
   };
 }
 
@@ -102,10 +123,12 @@ export function parseManifest(json: string): ExportManifest {
 export interface AttachmentEntry {
   /** Index into the flat attachments/ folder inside the ZIP */
   zipFilename: string;
-  /** Original on-disk filename (for reading) */
+  /** Local storage locator: a file path for legacy attachments or a storage root for chunked attachments. */
   diskPath: string;
   /** Whether the on-disk file is password-encrypted */
   isPasswordEncrypted: boolean;
+  /** Optional local content descriptor for selecting a chunk-aware reader. */
+  content?: AttachmentContent;
 }
 
 /** Collect unique attachments from pages for export, building portable ZIP filenames. */
@@ -114,19 +137,22 @@ export function collectAttachmentEntries(pages: Page[]): AttachmentEntry[] {
   const entries: AttachmentEntry[] = [];
 
   for (const page of pages) {
-    const allAttachments = [...page.images, ...page.files].filter((a) => !a.deleted);
+    const allAttachments = [...page.images, ...page.files].filter(
+      (a) => !a.deleted,
+    );
     for (const att of allAttachments) {
       if (!att.path || seen.has(att.path)) continue;
       seen.add(att.path);
 
-      const parts = att.name.split('.');
-      const ext = parts.length > 1 ? parts.pop()! : 'bin';
+      const parts = att.name.split(".");
+      const ext = parts.length > 1 ? parts.pop()! : "bin";
       const zipFilename = `${att.type}-${att.id}.${ext}`;
 
       entries.push({
         zipFilename,
         diskPath: att.path,
         isPasswordEncrypted: att.encrypted,
+        ...(att.content !== undefined ? { content: att.content } : {}),
       });
     }
   }
@@ -135,19 +161,25 @@ export function collectAttachmentEntries(pages: Page[]): AttachmentEntry[] {
 
 /**
  * Rewrite attachment paths in pages to use portable ZIP filenames.
- * Returns cloned pages with updated paths.
+ * A rewritten flat-v1 ZIP path identifies a reconstructed payload, so its local
+ * content descriptor is omitted. Unmapped attachments retain every property.
  */
-export function rewriteAttachmentPaths(pages: Page[], pathMap: Map<string, string>): Page[] {
+export function rewriteAttachmentPaths(
+  pages: Page[],
+  pathMap: Map<string, string>,
+): Page[] {
+  const rewriteAttachment = (attachment: Attachment): Attachment => {
+    const zipPath = pathMap.get(attachment.path);
+    if (zipPath === undefined) return { ...attachment };
+
+    const { content: _content, ...legacyAttachment } = attachment;
+    return { ...legacyAttachment, path: zipPath };
+  };
+
   return pages.map((page) => ({
     ...page,
-    images: page.images.map((a: Attachment) => ({
-      ...a,
-      path: pathMap.get(a.path) ?? a.path,
-    })),
-    files: page.files.map((a: Attachment) => ({
-      ...a,
-      path: pathMap.get(a.path) ?? a.path,
-    })),
+    images: page.images.map(rewriteAttachment),
+    files: page.files.map(rewriteAttachment),
   }));
 }
 

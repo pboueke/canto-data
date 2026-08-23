@@ -1,5 +1,12 @@
 # Changelog
 
+## v1.1.0 - Chunked attachment-content contract
+
+- feat: add an optional, validated `Attachment.content` descriptor for `canto-chunked-v1` metadata while preserving legacy monolithic attachments
+- feat: advance the journal/export schema to `0.18.0` with a no-op `0.17.0 → 0.18.0` migration
+- feat: retain the flat archive-v1 payload contract by omitting local chunk descriptors when attachment paths are rewritten for ZIP export
+- docs: clarify that this package owns metadata validation only and does not implement storage, crypto, chunk I/O, or sync
+
 ## v1.0.4 - Carranca CI and container configuration
 
 - ci: add GitHub Actions PR review workflow using carranca-sandboxed AI reviewer

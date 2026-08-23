@@ -3,11 +3,11 @@
 Data model library for [Canto](https://github.com/pboueke/canto), a private encrypted journaling app.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-![Version](https://img.shields.io/badge/version-1.0.4-green)
-![Tests](https://img.shields.io/badge/tests-156%2F156%20passed-brightgreen)
+![Version](https://img.shields.io/badge/version-1.1.0-green)
+![Tests](https://img.shields.io/badge/tests-164%2F164%20passed-brightgreen)
 ![Coverage](https://img.shields.io/badge/coverage-100%25-brightgreen)
 
-`canto-data` provides TypeScript types, runtime validation, schema versioning, migration infrastructure, and export format utilities for Canto journals.
+`canto-data` provides TypeScript types, runtime validation, schema versioning, migration infrastructure, and export format utilities for Canto journals. It defines attachment metadata only; it does not encrypt, store, stream, or upload attachment bytes.
 
 This package is **MIT-licensed** and has **zero dependencies**. It can be used independently of the Canto app to read, validate, and manipulate Canto journal data.
 
@@ -36,8 +36,8 @@ What `canto-data` owns:
 What it does **not** include:
 
 - Encryption and decryption
-- Storage backends
-- Sync integrations
+- Attachment storage, chunk I/O, and byte reassembly
+- Sync integrations and remote uploads
 - UI components
 
 Those pieces live in the [Canto app](https://github.com/pboueke/canto).
@@ -191,7 +191,12 @@ JournalContent
     │   ├── type: 'image'
     │   ├── encrypted: boolean
     │   ├── size?: number (bytes)
-    │   └── deleted: boolean
+    │   ├── deleted: boolean
+    │   └── content?: AttachmentContent (absent for legacy monolithic bytes)
+    │       ├── format: 'canto-chunked-v1'
+    │       ├── byteLength: number (exact plaintext bytes)
+    │       ├── chunkSize: number (maximum plaintext bytes per chunk)
+    │       └── chunkCount: number (ceil(byteLength / chunkSize))
     └── files: Attachment[]
         └── same fields as images, with type: 'file'
 ```
@@ -206,13 +211,14 @@ Canto journal schemas follow [semver](https://semver.org/):
 | New optional field                     | MINOR        | No                |
 | Documentation or validation fix        | PATCH        | No                |
 
-The schema version is stored in `JournalContent.schemaVersion` and `ExportManifest.schemaVersion`. Legacy data without `schemaVersion` is treated as `0.16.0`. Migrations are forward-only.
+The schema version is stored in `JournalContent.schemaVersion` and `ExportManifest.schemaVersion`. Legacy data without `schemaVersion` is treated as `0.16.0`. Migrations are forward-only. Descriptor-absent attachments remain supported; a reader that only supports schema `0.17.0` cannot consume a future `0.18.0` archive.
 
 ### Migration History
 
 | From   | To     | Description                                         |
 | ------ | ------ | --------------------------------------------------- |
 | 0.16.0 | 0.17.0 | Remove deprecated `showMarkdownPlaceholder` setting |
+| 0.17.0 | 0.18.0 | No-op additive attachment-content descriptor schema |
 
 ## Export Format Details
 
@@ -221,8 +227,8 @@ The schema version is stored in `JournalContent.schemaVersion` and `ExportManife
 ```json
 {
   "version": 1,
-  "schemaVersion": "0.17.0",
-  "appVersion": "0.17.0",
+  "schemaVersion": "0.18.0",
+  "appVersion": "1.1.0",
   "exportDate": "2026-01-01T00:00:00.000Z",
   "encrypted": false,
   "journalTitle": "My Journal",
@@ -236,15 +242,19 @@ The schema version is stored in `JournalContent.schemaVersion` and `ExportManife
 - `encrypted`: If `true`, all JSON and attachment content is AES-256-GCM encrypted
 - `salt` and `kdfIterations`: Present for password-protected journals
 
+Archive format version `1` remains flat: each attachment is one reconstructed raw member under `attachments/{type}-{id}.{ext}`. A chunked local attachment's `content` descriptor is omitted when its path is rewritten to that archive member. Old v1 archives and descriptor-absent attachments remain readable.
+
 ### Encrypted Exports
 
-When `encrypted: true`, decryption requires the journal password. The ciphertext format is `[12-byte nonce][ciphertext][16-byte GCM tag]` using AES-256-GCM. See [Canto SECURITY.md](https://github.com/pboueke/canto/blob/main/SECURITY.md) for the full encryption model.
+For Canto app exports, when `encrypted: true`, decryption requires the journal password. The ciphertext format is `[12-byte nonce][ciphertext][16-byte GCM tag]` using AES-256-GCM. This library does not perform that encryption or decryption; see [Canto SECURITY.md](https://github.com/pboueke/canto/blob/main/SECURITY.md) for the full encryption model.
 
 ### Import Behavior
 
 Importing always creates a new journal with new UUIDs, so re-importing the same archive is safe. Shared attachments get individual copies per page.
 
-## Filesystem Structure
+## Canto App Filesystem Structure
+
+The following is Canto app storage documentation only; `canto-data` does not implement these storage backends.
 
 ### Native (Android and iOS)
 
@@ -275,7 +285,7 @@ Virtual paths mirror native layout:
 
 ### Google Drive
 
-All journal content on Google Drive is AES-256-GCM encrypted before upload. Only the registry and sync index are stored unencrypted.
+The Canto app encrypts journal content with AES-256-GCM before Google Drive upload. Only the registry and sync index are stored unencrypted; `canto-data` has no Drive behavior.
 
 ```text
 My Drive/Canto/

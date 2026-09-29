@@ -38,6 +38,9 @@ explaining why it exists, how to use it and how to replace it.
 [AGENTS.md](https://github.com/pboueke/canto-data/blob/main/AGENTS.md) states
 the working agreement for automated changes, including the 100% coverage floor
 and the rule that agents never commit, tag or publish.
+[CONTRIBUTING.md](https://github.com/pboueke/canto-data/blob/main/CONTRIBUTING.md)
+is the human entry point: prerequisites, what to change where and the gate
+rules, linking back to this page for the target map and release steps.
 
 Verification may write ignored build/test output, but never tracked files,
 versions, badges, the Git index or Git configuration. Synchronization is

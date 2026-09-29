@@ -26,6 +26,7 @@ targets and the element documents.
 | Agent guidance              | [13-agent-guidance.md](13-agent-guidance.md) | `AGENTS.md`                                              |
 | Spec workflow               | [14-spec-workflow.md](14-spec-workflow.md)   | `docs/spec/`                                             |
 | GitHub Pages docs           | [15-pages.md](15-pages.md)                   | `make docs-build docs-preview`                           |
+| Contributor guide           | [16-contributing.md](16-contributing.md)     | `CONTRIBUTING.md`                                        |
 
 One authority per concern: the Makefile owns the gate composition, npm scripts
 remain leaf commands, the changelog owns the release version, and no element

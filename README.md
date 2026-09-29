@@ -68,9 +68,9 @@ The full reference is published at
 ## Development
 
 `make verify` is the authoritative gate and runs in pinned rootless Podman
-containers. See the
-[development page](https://pboueke.github.io/canto-data/development/) and
-[AGENTS.md](AGENTS.md).
+containers. See [CONTRIBUTING.md](CONTRIBUTING.md),
+[AGENTS.md](AGENTS.md) and the
+[development page](https://pboueke.github.io/canto-data/development/).
 
 ## License
 

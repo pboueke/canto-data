@@ -1,0 +1,71 @@
+---
+title: canto-data
+description: TypeScript data model, validation, migration and export format utilities for Canto journals.
+template: splash
+hero:
+  tagline: TypeScript types, runtime validation, schema versioning and export format helpers for Canto journals. It owns attachment metadata only — never encryption, storage or sync.
+  actions:
+    - text: Getting started
+      link: /canto-data/getting-started/
+      icon: right-arrow
+      variant: primary
+    - text: Canto app
+      link: https://pboueke.github.io/canto/
+      variant: secondary
+    - text: Repository
+      link: https://github.com/pboueke/canto-data
+      icon: github
+      variant: minimal
+---
+
+import { Card, CardGrid, LinkCard } from '@astrojs/starlight/components';
+
+`canto-data` is **MIT-licensed** and has **zero runtime dependencies**. It can
+be used independently of the Canto app to read, validate and manipulate Canto
+journal data — the app itself lives at
+[pboueke.github.io/canto](https://pboueke.github.io/canto/).
+
+<span className="site-version">Current release: v{__CANTO_DATA_VERSION__}</span>
+
+<CardGrid>
+  <LinkCard
+    title="Getting started"
+    description="Install the package and validate your first journal."
+    href="/canto-data/getting-started/"
+  />
+  <LinkCard
+    title="Usage"
+    description="Validation, type guards, serialization and migration."
+    href="/canto-data/usage/"
+  />
+  <LinkCard
+    title="Export format"
+    description="Manifest, attachment entries and archive path rewriting."
+    href="/canto-data/export-format/"
+  />
+  <LinkCard
+    title="Schema versions"
+    description="Migration history from 0.16.0 to 0.19.0."
+    href="/canto-data/schema/"
+  />
+  <LinkCard
+    title="API"
+    description="Every export and the subpath it lives in."
+    href="/canto-data/api/"
+  />
+  <LinkCard
+    title="Data model"
+    description="The complete JournalContent tree, field by field."
+    href="/canto-data/data-model/"
+  />
+  <LinkCard
+    title="Canto app storage"
+    description="Where the app stores journals on native, web and Drive."
+    href="/canto-data/storage/"
+  />
+  <LinkCard
+    title="Relationship to the app"
+    description="Licensing and the boundary between library and app."
+    href="/canto-data/relationship/"
+  />
+</CardGrid>

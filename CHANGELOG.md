@@ -1,5 +1,22 @@
 # Changelog
 
+## v1.2.1 - Reproducible verification toolkit
+
+- build: run every gate in digest-pinned rootless Podman images instead of host tooling
+- build: compose the npm leaf commands through Make targets with a single `make verify` gate
+- chore: adopt ESLint and Prettier with an absolute 100% coverage inventory over the barrel and tooling
+- chore: replace Husky and lint-staged with opt-in, read-only `.githooks` backed by Make
+- test: add committed contract fixtures, installed-tarball consumers on Node 18/20/22/24 and a headless-Chromium bundler gate
+- test: cover the executable helpers at 100% with dependency-injected tests
+- ci: run the shared gate on GitHub Actions with commit-pinned actions and upload reports as evidence
+- ci: replace the credential-holding publish workflow with an owner-run interactive `release.sh`
+- ci: add a tag-only workflow that never publishes or moves an existing tag
+- ci: remove the Carranca reviewer and its CI-scoped inputs
+- docs: publish a Starlight documentation site to GitHub Pages
+- docs: reduce the README to badges, install, a quick start and an index of the published documentation
+- fix: fail closed on HIGH/CRITICAL advisories and keep the locked graph free of known findings
+- docs: add portable agent guidance, spec conventions and per-element documentation
+
 ## v1.2.0 - Atomic chunk generations
 
 - feat: add optional `Attachment.content.generation` so remote chunk generations can publish atomically without overwriting the previously published attachment

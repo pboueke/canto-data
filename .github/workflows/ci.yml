@@ -1,20 +1,67 @@
 name: CI
+
 on:
   push:
     branches: [main]
   pull_request:
     branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
-  test:
-    runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        node-version: [18, 20, 22]
+  verify:
+    name: make verify (rootless Podman)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 90
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      # actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
         with:
-          node-version: ${{ matrix.node-version }}
-      - run: npm ci
-      - run: npm run build
-      - run: npm run verify:repo
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Install rootless Podman
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends podman
+
+      - name: Identify the tested revision
+        run: |
+          echo "revision: $(git rev-parse HEAD)"
+
+      - name: Resolve the version comparison base
+        id: base
+        env:
+          PR_BASE: ${{ github.event.pull_request.base.sha }}
+          PUSH_BEFORE: ${{ github.event.before }}
+        run: |
+          base="$PR_BASE"
+          if [ -z "$base" ]; then base="$PUSH_BEFORE"; fi
+          case "$base" in
+            "" | "0000000000000000000000000000000000000000")
+              base="HEAD"
+              ;;
+          esac
+          echo "base=$base" >> "$GITHUB_OUTPUT"
+
+      - name: Verify
+        env:
+          VERSION_BASE: ${{ steps.base.outputs.base }}
+        run: make verify
+
+      # actions/upload-artifact@v4
+      - name: Upload verification evidence
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: canto-data-verify-${{ github.sha }}
+          path: |
+            coverage/jest-results.json
+            coverage/coverage-summary.json
+          if-no-files-found: warn
+          retention-days: 14

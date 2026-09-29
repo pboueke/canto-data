@@ -1,0 +1,57 @@
+# Tag the current release version once when a commit reaches main.
+# This workflow does not publish to npm and never moves an existing tag.
+name: Tag release version
+
+on:
+  push:
+    branches: [main]
+
+# Only the tag push needs write access; no registry credentials exist here.
+permissions:
+  contents: write
+
+concurrency:
+  group: release-tag-main
+  cancel-in-progress: false
+
+jobs:
+  tag:
+    name: Tag current version
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - name: Check out the pushed commit
+        # v4
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: ${{ github.sha }}
+          # The tag push below uses a one-shot token URL, so no credential is
+          # left in .git/config for later steps.
+          persist-credentials: false
+
+      - name: Create the version tag if absent
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          node toolkit/tools/cli/run.js version-check \
+            --root . --base HEAD
+          version="$(node -p 'require("./package.json").version')"
+          tag="v$version"
+
+          git fetch --no-tags origin main
+          if [[ "$(git rev-parse FETCH_HEAD)" != "$GITHUB_SHA" ]]; then
+            echo 'main advanced since this push; skipping stale tag'
+            exit 0
+          fi
+          if [[ -n "$(git ls-remote origin "refs/tags/$tag")" ]]
+          then
+            echo "$tag already exists; not moving it"
+            exit 0
+          fi
+
+          git tag "$tag" "$GITHUB_SHA"
+          remote="https://x-access-token:${GH_TOKEN}@github.com"
+          remote+="/${GITHUB_REPOSITORY}.git"
+          git push "$remote" "refs/tags/$tag"

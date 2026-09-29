@@ -1,0 +1,7 @@
+node_modules/
+dist/
+coverage/
+.cache/
+*.tgz
+docs/page/dist/
+docs/page/.astro/

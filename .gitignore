@@ -1,4 +1,8 @@
 node_modules/
 dist/
 coverage/
+.cache/
 *.tgz
+.release/
+docs/page/dist/
+docs/page/.astro/

@@ -1,0 +1,307 @@
+[
+  {
+    "name": "attachment collection deduplicates paths, skips deleted files and defaults extensions",
+    "operation": "collectAttachmentEntries",
+    "input": [
+      {
+        "id": "page-a",
+        "text": "a",
+        "date": "2026-01-01T00:00:00.000Z",
+        "tags": [],
+        "images": [
+          {
+            "id": "img-1",
+            "path": "/files/img-1.jpg",
+            "name": "photo.jpg",
+            "type": "image",
+            "encrypted": false,
+            "deleted": false
+          },
+          {
+            "id": "img-2",
+            "path": "/files/img-2.bin",
+            "name": "no-extension",
+            "type": "image",
+            "encrypted": true,
+            "deleted": false
+          },
+          {
+            "id": "img-3",
+            "path": "/files/img-3.jpg",
+            "name": "deleted.jpg",
+            "type": "image",
+            "encrypted": false,
+            "deleted": true
+          }
+        ],
+        "files": [
+          {
+            "id": "file-1",
+            "path": "/files/file-1.pdf",
+            "name": "doc.pdf",
+            "type": "file",
+            "encrypted": true,
+            "deleted": false
+          }
+        ],
+        "comments": [],
+        "modified": 1,
+        "deleted": false
+      },
+      {
+        "id": "page-b",
+        "text": "b",
+        "date": "2026-01-02T00:00:00.000Z",
+        "tags": [],
+        "images": [
+          {
+            "id": "img-1-duplicate",
+            "path": "/files/img-1.jpg",
+            "name": "photo.jpg",
+            "type": "image",
+            "encrypted": false,
+            "deleted": false
+          }
+        ],
+        "files": [],
+        "comments": [],
+        "modified": 2,
+        "deleted": false
+      }
+    ],
+    "expect": {
+      "ok": true,
+      "value": [
+        {
+          "zipFilename": "image-img-1.jpg",
+          "diskPath": "/files/img-1.jpg",
+          "isPasswordEncrypted": false
+        },
+        {
+          "zipFilename": "image-img-2.bin",
+          "diskPath": "/files/img-2.bin",
+          "isPasswordEncrypted": true
+        },
+        {
+          "zipFilename": "file-file-1.pdf",
+          "diskPath": "/files/file-1.pdf",
+          "isPasswordEncrypted": true
+        }
+      ]
+    }
+  },
+  {
+    "name": "attachment collection on an empty journal returns nothing",
+    "operation": "collectAttachmentEntries",
+    "input": [],
+    "expect": { "ok": true, "value": [] }
+  },
+  {
+    "name": "path rewriting maps known paths and keeps unknown ones",
+    "operation": "rewriteAttachmentPaths",
+    "input": {
+      "pages": [
+        {
+          "id": "page-a",
+          "text": "a",
+          "date": "2026-01-01T00:00:00.000Z",
+          "tags": [],
+          "images": [
+            {
+              "id": "img-1",
+              "path": "/files/img-1.jpg",
+              "name": "photo.jpg",
+              "type": "image",
+              "encrypted": false,
+              "deleted": false
+            },
+            {
+              "id": "img-9",
+              "path": "/files/missing.png",
+              "name": "missing.png",
+              "type": "image",
+              "encrypted": true,
+              "deleted": false
+            }
+          ],
+          "files": [],
+          "comments": [],
+          "modified": 1,
+          "deleted": false
+        }
+      ],
+      "pathMap": { "/files/img-1.jpg": "image-img-1.jpg" }
+    },
+    "expect": {
+      "ok": true,
+      "value": [
+        {
+          "id": "page-a",
+          "text": "a",
+          "date": "2026-01-01T00:00:00.000Z",
+          "tags": [],
+          "images": [
+            {
+              "id": "img-1",
+              "path": "image-img-1.jpg",
+              "name": "photo.jpg",
+              "type": "image",
+              "encrypted": false,
+              "deleted": false
+            },
+            {
+              "id": "img-9",
+              "path": "/files/missing.png",
+              "name": "missing.png",
+              "type": "image",
+              "encrypted": true,
+              "deleted": false
+            }
+          ],
+          "files": [],
+          "comments": [],
+          "modified": 1,
+          "deleted": false
+        }
+      ]
+    }
+  },
+  {
+    "name": "attachment collection carries the chunked content descriptor",
+    "operation": "collectAttachmentEntries",
+    "input": [
+      {
+        "id": "page-a",
+        "text": "a",
+        "date": "2026-01-01T00:00:00.000Z",
+        "tags": [],
+        "images": [
+          {
+            "id": "img-9",
+            "path": "/files/img-9.png",
+            "name": "chunked.png",
+            "type": "image",
+            "encrypted": false,
+            "deleted": false,
+            "content": {
+              "format": "canto-chunked-v1",
+              "byteLength": 1000,
+              "chunkSize": 256,
+              "chunkCount": 4,
+              "generation": "gen-7"
+            }
+          }
+        ],
+        "files": [],
+        "comments": [],
+        "modified": 1,
+        "deleted": false
+      }
+    ],
+    "expect": {
+      "ok": true,
+      "value": [
+        {
+          "zipFilename": "image-img-9.png",
+          "diskPath": "/files/img-9.png",
+          "isPasswordEncrypted": false,
+          "content": {
+            "format": "canto-chunked-v1",
+            "byteLength": 1000,
+            "chunkSize": 256,
+            "chunkCount": 4,
+            "generation": "gen-7"
+          }
+        }
+      ]
+    }
+  },
+  {
+    "name": "path rewriting omits a rewritten chunk descriptor and keeps unmapped ones",
+    "operation": "rewriteAttachmentPaths",
+    "input": {
+      "pages": [
+        {
+          "id": "page-a",
+          "text": "a",
+          "date": "2026-01-01T00:00:00.000Z",
+          "tags": [],
+          "images": [
+            {
+              "id": "img-1",
+              "path": "/files/img-1.png",
+              "name": "chunked.png",
+              "type": "image",
+              "encrypted": false,
+              "deleted": false,
+              "content": {
+                "format": "canto-chunked-v1",
+                "byteLength": 512,
+                "chunkSize": 256,
+                "chunkCount": 2
+              }
+            },
+            {
+              "id": "img-2",
+              "path": "/files/img-2.png",
+              "name": "chunked-2.png",
+              "type": "image",
+              "encrypted": false,
+              "deleted": false,
+              "content": {
+                "format": "canto-chunked-v1",
+                "byteLength": 512,
+                "chunkSize": 256,
+                "chunkCount": 2
+              }
+            }
+          ],
+          "files": [],
+          "comments": [],
+          "modified": 1,
+          "deleted": false
+        }
+      ],
+      "pathMap": { "/files/img-1.png": "image-img-1.png" }
+    },
+    "expect": {
+      "ok": true,
+      "value": [
+        {
+          "id": "page-a",
+          "text": "a",
+          "date": "2026-01-01T00:00:00.000Z",
+          "tags": [],
+          "images": [
+            {
+              "id": "img-1",
+              "path": "image-img-1.png",
+              "name": "chunked.png",
+              "type": "image",
+              "encrypted": false,
+              "deleted": false
+            },
+            {
+              "id": "img-2",
+              "path": "/files/img-2.png",
+              "name": "chunked-2.png",
+              "type": "image",
+              "encrypted": false,
+              "deleted": false,
+              "content": {
+                "format": "canto-chunked-v1",
+                "byteLength": 512,
+                "chunkSize": 256,
+                "chunkCount": 2
+              }
+            }
+          ],
+          "files": [],
+          "comments": [],
+          "modified": 1,
+          "deleted": false
+        }
+      ]
+    }
+  }
+]

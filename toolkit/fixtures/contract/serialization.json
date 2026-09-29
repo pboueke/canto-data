@@ -1,0 +1,70 @@
+[
+  {
+    "name": "serialize and deserialize round-trips a page with unicode and comments",
+    "operation": "serializePagesRoundTrip",
+    "input": [
+      {
+        "id": "page-1",
+        "text": "line one\nline two ünïcode 👍",
+        "date": "2026-01-02T09:30:00.000Z",
+        "tags": ["a", "b"],
+        "files": [],
+        "images": [],
+        "comments": [{ "id": "c1", "text": "note", "date": "2026-01-02T10:00:00.000Z" }],
+        "modified": 1767327000000,
+        "deleted": false
+      }
+    ],
+    "expect": {
+      "ok": true,
+      "value": {
+        "entries": {
+          "page-1": {
+            "id": "page-1",
+            "text": "line one\nline two ünïcode 👍",
+            "date": "2026-01-02T09:30:00.000Z",
+            "tags": ["a", "b"],
+            "files": [],
+            "images": [],
+            "comments": [{ "id": "c1", "text": "note", "date": "2026-01-02T10:00:00.000Z" }],
+            "modified": 1767327000000,
+            "deleted": false
+          }
+        },
+        "restored": [
+          {
+            "id": "page-1",
+            "text": "line one\nline two ünïcode 👍",
+            "date": "2026-01-02T09:30:00.000Z",
+            "tags": ["a", "b"],
+            "files": [],
+            "images": [],
+            "comments": [{ "id": "c1", "text": "note", "date": "2026-01-02T10:00:00.000Z" }],
+            "modified": 1767327000000,
+            "deleted": false
+          }
+        ]
+      }
+    }
+  },
+  {
+    "name": "deserializing an incomplete page fails validation",
+    "operation": "deserializePages",
+    "input": { "page-x": "{\"id\":\"page-x\"}" },
+    "expect": {
+      "ok": false,
+      "error": {
+        "name": "ValidationError",
+        "field": "page.text",
+        "expected": "string",
+        "received": "undefined"
+      }
+    }
+  },
+  {
+    "name": "deserializing an empty page set returns an empty list",
+    "operation": "deserializePages",
+    "input": {},
+    "expect": { "ok": true, "value": [] }
+  }
+]

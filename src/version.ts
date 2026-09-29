@@ -1,13 +1,11 @@
 /** Current Canto journal schema version (semver). */
-export const SCHEMA_VERSION = "0.19.0";
+export const SCHEMA_VERSION = '0.19.0';
 
 /** Parse a semver string into [major, minor, patch]. Throws on invalid format. */
 function parseSemver(v: string): [number, number, number] {
-  const parts = v.split(".").map(Number);
+  const parts = v.split('.').map(Number);
   if (parts.length !== 3 || parts.some(isNaN)) {
-    throw new Error(
-      `Invalid schema version: "${v}" (expected semver like "1.0.0")`,
-    );
+    throw new Error(`Invalid schema version: "${v}" (expected semver like "1.0.0")`);
   }
   return parts as [number, number, number];
 }

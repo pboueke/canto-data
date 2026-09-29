@@ -1,317 +1,76 @@
 # canto-data
 
-Data model library for [Canto](https://github.com/pboueke/canto), a private encrypted journaling app.
+Data model library for [Canto](https://pboueke.github.io/canto/), a private
+encrypted journaling app.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-![Version](https://img.shields.io/badge/version-1.2.0-green)
-![Tests](https://img.shields.io/badge/tests-165%2F165%20passed-brightgreen)
+![Version](https://img.shields.io/badge/version-1.2.1-green)
+![Tests](https://img.shields.io/badge/tests-441%2F441%20passed-brightgreen)
 ![Coverage](https://img.shields.io/badge/coverage-100%25-brightgreen)
 
-`canto-data` provides TypeScript types, runtime validation, schema versioning, migration infrastructure, and export format utilities for Canto journals. It defines attachment metadata only; it does not encrypt, store, stream, or upload attachment bytes.
+`canto-data` provides TypeScript types, runtime validation, schema versioning,
+migration infrastructure and export format utilities for Canto journals. It
+defines attachment metadata only; it does not encrypt, store, stream or upload
+attachment bytes.
 
-This package is **MIT-licensed** and has **zero dependencies**. It can be used independently of the Canto app to read, validate, and manipulate Canto journal data.
+MIT-licensed, zero runtime dependencies, Node.js 18+. Use it independently of
+the Canto app to read, validate and manipulate Canto journal data.
 
-## Relationship to the Canto App
-
-Canto (the app) is GPLv3-licensed. `canto-data` (this library) is MIT-licensed to enable data portability: anyone can build tools that interoperate with Canto journals without being bound by the app's copyleft license.
-
-```text
-canto-data (MIT)
-└── src/
-    ├── types.ts              # All TypeScript interfaces
-    ├── validation.ts         # Type guards and structural validators
-    ├── version.ts            # Schema version constant and semver utils
-    ├── migration.ts          # Forward-only migration runner
-    ├── migrations/           # Migration registry
-    └── format.ts             # Export manifest and ZIP format utilities
-```
-
-What `canto-data` owns:
-
-- All journal data types (Journal, Page, Attachment, Comment, and related structures)
-- Runtime validation and type guards
-- Schema versioning and migration framework
-- Export format specification (manifest structure and attachment naming)
-
-What it does **not** include:
-
-- Encryption and decryption
-- Attachment storage, chunk I/O, and byte reassembly
-- Sync integrations and remote uploads
-- UI components
-
-Those pieces live in the [Canto app](https://github.com/pboueke/canto).
-
-## Installation
+## Install
 
 ```bash
 npm install canto-data
 ```
 
-## Quick Start
+## Quick start
 
-```typescript
-import {
-  type JournalContent,
-  type Page,
-  type Attachment,
-  SCHEMA_VERSION,
-  DEFAULT_JOURNAL_SETTINGS,
-  validateJournalContent,
-  ValidationError,
-  parseManifest,
-  migrateIfNeeded,
-} from "canto-data";
-```
-
-### Validating Journal Data
-
-```typescript
-import { validateJournalContent, ValidationError } from "canto-data";
+```ts
+import { validateJournalContent, ValidationError } from 'canto-data';
 
 try {
   const journal = validateJournalContent(untrustedData);
-} catch (err) {
-  if (err instanceof ValidationError) {
-    console.error(`Field: ${err.field}`);
-    console.error(`Expected: ${err.expected}, got: ${err.received}`);
+} catch (error) {
+  if (error instanceof ValidationError) {
+    console.error(`Field: ${error.field}`);
+    console.error(`Expected: ${error.expected}, got: ${error.received}`);
   }
 }
 ```
 
-### Reading an Export Manifest
-
-```typescript
-import { parseManifest } from "canto-data";
+```ts
+import { migrateIfNeeded, parseManifest } from 'canto-data';
 
 const manifest = parseManifest(manifestJsonString);
-console.log(manifest.encrypted);
-console.log(manifest.journalTitle);
-```
-
-### Checking Schema Version and Migrating
-
-```typescript
-import { migrateIfNeeded } from "canto-data";
-
 const result = migrateIfNeeded(rawData, manifest.schemaVersion);
+
 if (result.migrated) {
   console.log(`Migrated from ${result.fromVersion} to ${result.toVersion}`);
 }
 ```
 
-### Working with Exported Journals
+## Documentation
 
-A `.canto.zip` file contains:
+The full reference is published at
+**[pboueke.github.io/canto-data](https://pboueke.github.io/canto-data/)**:
 
-```text
-{journal-title}.canto.zip
-├── manifest.json
-├── journal.json
-├── settings.json
-├── pages/
-│   ├── {pageId}.json
-│   └── ...
-└── attachments/
-    ├── {type}-{id}.{ext}
-    └── ...
-```
-
-Example: list all entries from an unencrypted export.
-
-```typescript
-import JSZip from "jszip";
-import { parseManifest } from "canto-data";
-import type { Page } from "canto-data";
-
-const zip = await JSZip.loadAsync(zipBuffer);
-const manifest = parseManifest(
-  await zip.file("manifest.json")!.async("string"),
-);
-
-if (manifest.encrypted) {
-  console.log("This export is encrypted and requires the journal password.");
-} else {
-  const pageFiles = zip.file(/^pages\/.*\.json$/);
-  for (const pf of pageFiles) {
-    const page: Page = JSON.parse(await pf.async("string"));
-    console.log(`${page.date}: ${page.text.substring(0, 80)}...`);
-  }
-}
-```
-
-## Data Model
-
-```text
-JournalContent
-├── id: string (UUID)
-├── title: string
-├── icon: string (emoji)
-├── date: string (ISO 8601, creation date)
-├── secure: boolean
-├── salt: string (base64, always present)
-├── biometric?: boolean
-├── kdfIterations?: number (PBKDF2, default 50000)
-├── themeOverride?: string
-├── schemaVersion?: string (semver)
-├── version: number (deprecated, always 1)
-├── settings: JournalSettings
-│   ├── use24h: boolean
-│   ├── previewTags: boolean
-│   ├── previewThumbnail: boolean
-│   ├── previewIcons: boolean
-│   ├── filterBar: boolean
-│   ├── sort: 'ascending' | 'descending' | 'none'
-│   ├── autoLocation: boolean
-│   ├── remoteSync: boolean
-│   ├── syncProvider?: 'gdrive'
-│   ├── autoSync: boolean
-│   └── themeOverride?: string
-└── pages: Page[]
-    ├── id: string (UUID)
-    ├── text: string (Markdown)
-    ├── date: string (ISO 8601, entry date)
-    ├── modified: number (Unix timestamp ms)
-    ├── deleted: boolean
-    ├── thumbnail?: string (base64)
-    ├── tags: string[]
-    ├── location?: GeoLocation
-    │   ├── latitude: number
-    │   ├── longitude: number
-    │   ├── altitude?: number
-    │   └── accuracy?: number
-    ├── comments: Comment[]
-    │   ├── id: string
-    │   ├── text: string
-    │   └── date: string (ISO 8601)
-    ├── images: Attachment[]
-    │   ├── id: string (UUID)
-    │   ├── path: string
-    │   ├── name: string (original filename)
-    │   ├── type: 'image'
-    │   ├── encrypted: boolean
-    │   ├── size?: number (bytes)
-    │   ├── deleted: boolean
-    │   └── content?: AttachmentContent (absent for legacy monolithic bytes)
-    │       ├── format: 'canto-chunked-v1'
-    │       ├── byteLength: number (exact plaintext bytes)
-    │       ├── chunkSize: number (maximum plaintext bytes per chunk)
-    │       └── chunkCount: number (ceil(byteLength / chunkSize))
-    └── files: Attachment[]
-        └── same fields as images, with type: 'file'
-```
-
-## Schema Versioning
-
-Canto journal schemas follow [semver](https://semver.org/):
-
-| Change type                            | Version bump | Migration needed? |
-| -------------------------------------- | ------------ | ----------------- |
-| Breaking (field removed, type changed) | MAJOR        | Yes               |
-| New optional field                     | MINOR        | No                |
-| Documentation or validation fix        | PATCH        | No                |
-
-The schema version is stored in `JournalContent.schemaVersion` and `ExportManifest.schemaVersion`. Legacy data without `schemaVersion` is treated as `0.16.0`. Migrations are forward-only. Descriptor-absent attachments remain supported; a reader that only supports schema `0.17.0` cannot consume a future `0.18.0` archive.
-
-### Migration History
-
-| From   | To     | Description                                         |
-| ------ | ------ | --------------------------------------------------- |
-| 0.16.0 | 0.17.0 | Remove deprecated `showMarkdownPlaceholder` setting |
-| 0.17.0 | 0.18.0 | No-op additive attachment-content descriptor schema |
-
-## Export Format Details
-
-### `manifest.json`
-
-```json
-{
-  "version": 1,
-  "schemaVersion": "0.18.0",
-  "appVersion": "1.1.0",
-  "exportDate": "2026-01-01T00:00:00.000Z",
-  "encrypted": false,
-  "journalTitle": "My Journal",
-  "salt": "base64...",
-  "kdfIterations": 50000
-}
-```
-
-- `version`: Manifest format version, always `1`
-- `schemaVersion`: Journal schema version; absent in legacy exports and treated as `0.16.0`
-- `encrypted`: If `true`, all JSON and attachment content is AES-256-GCM encrypted
-- `salt` and `kdfIterations`: Present for password-protected journals
-
-Archive format version `1` remains flat: each attachment is one reconstructed raw member under `attachments/{type}-{id}.{ext}`. A chunked local attachment's `content` descriptor is omitted when its path is rewritten to that archive member. Old v1 archives and descriptor-absent attachments remain readable.
-
-### Encrypted Exports
-
-For Canto app exports, when `encrypted: true`, decryption requires the journal password. The ciphertext format is `[12-byte nonce][ciphertext][16-byte GCM tag]` using AES-256-GCM. This library does not perform that encryption or decryption; see [Canto SECURITY.md](https://github.com/pboueke/canto/blob/main/SECURITY.md) for the full encryption model.
-
-### Import Behavior
-
-Importing always creates a new journal with new UUIDs, so re-importing the same archive is safe. Shared attachments get individual copies per page.
-
-## Canto App Filesystem Structure
-
-The following is Canto app storage documentation only; `canto-data` does not implement these storage backends.
-
-### Native (Android and iOS)
-
-```text
-{documentDirectory}/canto/
-├── journals.json
-├── {journalId}/
-│   ├── metadata.json
-│   ├── pages/
-│   │   └── {pageId}.json
-│   └── attachments/
-│       └── [e]{img|fl}-{pageId}-{hash}.{ext}
-```
-
-Attachment naming uses `{encPrefix}{typePrefix}-{pageId}-{hash}.{ext}` where `e` means password-encrypted and `img` or `fl` indicates the attachment type.
-
-### Web (IndexedDB)
-
-```text
-Database: 'canto' (version 1), Object store: 'files' (keyPath: 'path')
-
-Virtual paths mirror native layout:
-  canto/journals.json
-  canto/{journalId}/metadata.json
-  canto/{journalId}/pages/{pageId}.json
-  canto/{journalId}/attachments/{typePrefix}-{pageId}-{hash}.{ext}
-```
-
-### Google Drive
-
-The Canto app encrypts journal content with AES-256-GCM before Google Drive upload. Only the registry and sync index are stored unencrypted; `canto-data` has no Drive behavior.
-
-```text
-My Drive/Canto/
-├── {journalId}/
-│   ├── meta.json
-│   ├── index.json
-│   ├── pages/{pageId}.json
-│   └── attachments/{filename}
-App Data (hidden):
-└── canto-journals.json
-```
+| Page                                                                              | Covers                                        |
+| --------------------------------------------------------------------------------- | --------------------------------------------- |
+| [Getting started](https://pboueke.github.io/canto-data/getting-started/)          | install, validation, first migration          |
+| [Data model](https://pboueke.github.io/canto-data/data-model/)                    | the complete `JournalContent` tree            |
+| [Usage](https://pboueke.github.io/canto-data/usage/)                              | guards, serialization, attachments            |
+| [Export format](https://pboueke.github.io/canto-data/export-format/)              | archives, manifests, content descriptors      |
+| [Schema versions](https://pboueke.github.io/canto-data/schema/)                   | semver policy and migration history           |
+| [API](https://pboueke.github.io/canto-data/api/)                                  | every export and subpath                      |
+| [Canto app storage](https://pboueke.github.io/canto-data/storage/)                | native, IndexedDB and Drive layouts           |
+| [Relationship to the app](https://pboueke.github.io/canto-data/relationship/)     | licensing and the library boundary            |
+| [Development and verification](https://pboueke.github.io/canto-data/development/) | `make` targets, support matrix, release steps |
 
 ## Development
 
-```bash
-git clone https://github.com/pboueke/canto-data.git
-cd canto-data
-npm install
-npm test
-npm run test:ci
-npm run build
-```
-
-The repository requires `100%` test coverage. Local hooks keep the README version, test count, and coverage badges in sync with the current test suite.
-
-Release versioning is derived from the top entry in [CHANGELOG.md](CHANGELOG.md). The pre-commit hook syncs `package.json` and the README version badge from that changelog entry automatically.
+`make verify` is the authoritative gate and runs in pinned rootless Podman
+containers. See the
+[development page](https://pboueke.github.io/canto-data/development/) and
+[AGENTS.md](AGENTS.md).
 
 ## License
 

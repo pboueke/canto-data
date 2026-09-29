@@ -1,0 +1,25 @@
+# canto-data toolkit image.
+#
+# Why: every gate must run on one reproducible Node runtime instead of whatever
+# node happens to be installed on the host. The base image is pinned by the
+# multi-arch digest resolved during implementation (see docs/elements/01-toolkit.md).
+#
+# How: the only build context is this directory, so no repository files are sent
+# to the builder. `make toolkit-build` supplies NODE_IMAGE from the Makefile pin.
+#
+# Replacement: change the digest and the matching Makefile pin together, then
+# re-run `make verify`.
+
+ARG NODE_IMAGE=docker.io/library/node@sha256:64af3819f9275802414d7cdc38c27e9d82bd564dec4d4da87d008255d36c63b4
+FROM ${NODE_IMAGE}
+
+# Re-declare to make the value available to LABEL and to document it in the image.
+ARG NODE_IMAGE
+
+LABEL org.canto-data.element="toolkit" \
+      org.canto-data.node-image="${NODE_IMAGE}"
+
+ENV npm_config_update_notifier=false \
+    npm_config_fund=false
+
+WORKDIR /work

@@ -1,0 +1,223 @@
+[
+  {
+    "name": "a valid chunked descriptor validates with its computed chunk count",
+    "operation": "validateChunkedAttachmentContent",
+    "input": {
+      "value": {
+        "format": "canto-chunked-v1",
+        "byteLength": 1000,
+        "chunkSize": 256,
+        "chunkCount": 4
+      }
+    },
+    "expect": {
+      "ok": true,
+      "value": {
+        "format": "canto-chunked-v1",
+        "byteLength": 1000,
+        "chunkSize": 256,
+        "chunkCount": 4
+      }
+    }
+  },
+  {
+    "name": "an optional non-empty generation is preserved",
+    "operation": "validateChunkedAttachmentContent",
+    "input": {
+      "value": {
+        "format": "canto-chunked-v1",
+        "byteLength": 512,
+        "chunkSize": 256,
+        "chunkCount": 2,
+        "generation": "gen-7"
+      }
+    },
+    "expect": {
+      "ok": true,
+      "value": {
+        "format": "canto-chunked-v1",
+        "byteLength": 512,
+        "chunkSize": 256,
+        "chunkCount": 2,
+        "generation": "gen-7"
+      }
+    }
+  },
+  {
+    "name": "a missing format is rejected at the caller path",
+    "operation": "validateChunkedAttachmentContent",
+    "input": {
+      "value": { "byteLength": 1, "chunkSize": 1, "chunkCount": 1 }
+    },
+    "expect": {
+      "ok": false,
+      "error": {
+        "name": "ValidationError",
+        "field": "content.format",
+        "expected": "one of [\"canto-chunked-v1\"]"
+      }
+    }
+  },
+  {
+    "name": "a chunk count that disagrees with ceil(byteLength / chunkSize) is rejected",
+    "operation": "validateChunkedAttachmentContent",
+    "input": {
+      "value": {
+        "format": "canto-chunked-v1",
+        "byteLength": 1000,
+        "chunkSize": 256,
+        "chunkCount": 3
+      },
+      "path": "pages[0].images[0].content"
+    },
+    "expect": {
+      "ok": false,
+      "error": {
+        "name": "ValidationError",
+        "field": "pages[0].images[0].content.chunkCount",
+        "expected": "Math.ceil(byteLength / chunkSize) = 4",
+        "received": "3"
+      }
+    }
+  },
+  {
+    "name": "a zero chunk size is rejected as not positive",
+    "operation": "validateChunkedAttachmentContent",
+    "input": {
+      "value": {
+        "format": "canto-chunked-v1",
+        "byteLength": 0,
+        "chunkSize": 0,
+        "chunkCount": 0
+      }
+    },
+    "expect": {
+      "ok": false,
+      "error": {
+        "name": "ValidationError",
+        "field": "content.chunkSize",
+        "expected": "positive safe integer",
+        "received": "0"
+      }
+    }
+  },
+  {
+    "name": "a negative byte length is rejected",
+    "operation": "validateChunkedAttachmentContent",
+    "input": {
+      "value": {
+        "format": "canto-chunked-v1",
+        "byteLength": -1,
+        "chunkSize": 256,
+        "chunkCount": 0
+      }
+    },
+    "expect": {
+      "ok": false,
+      "error": {
+        "name": "ValidationError",
+        "field": "content.byteLength",
+        "expected": "non-negative safe integer",
+        "received": "-1"
+      }
+    }
+  },
+  {
+    "name": "an empty generation is rejected",
+    "operation": "validateChunkedAttachmentContent",
+    "input": {
+      "value": {
+        "format": "canto-chunked-v1",
+        "byteLength": 1,
+        "chunkSize": 1,
+        "chunkCount": 1,
+        "generation": ""
+      }
+    },
+    "expect": {
+      "ok": false,
+      "error": {
+        "name": "ValidationError",
+        "field": "content.generation",
+        "expected": "non-empty string",
+        "received": ""
+      }
+    }
+  },
+  {
+    "name": "a non-object descriptor is rejected",
+    "operation": "validateChunkedAttachmentContent",
+    "input": { "value": "canto-chunked-v1" },
+    "expect": {
+      "ok": false,
+      "error": {
+        "name": "ValidationError",
+        "field": "content",
+        "expected": "object",
+        "received": "string"
+      }
+    }
+  },
+  {
+    "name": "the guard accepts a structurally valid descriptor",
+    "operation": "isChunkedAttachmentContentGuard",
+    "input": {
+      "format": "canto-chunked-v1",
+      "byteLength": 1024,
+      "chunkSize": 256,
+      "chunkCount": 4
+    },
+    "expect": { "ok": true, "value": true }
+  },
+  {
+    "name": "the guard rejects a descriptor whose chunk count disagrees",
+    "operation": "isChunkedAttachmentContentGuard",
+    "input": {
+      "format": "canto-chunked-v1",
+      "byteLength": 1024,
+      "chunkSize": 256,
+      "chunkCount": 3
+    },
+    "expect": { "ok": true, "value": false }
+  },
+  {
+    "name": "the guard rejects a non-object descriptor",
+    "operation": "isChunkedAttachmentContentGuard",
+    "input": "canto-chunked-v1",
+    "expect": { "ok": true, "value": false }
+  },
+  {
+    "name": "the combined check reports guard, validity and the failing field",
+    "operation": "guardAndValidateChunkedAttachmentContent",
+    "input": {
+      "format": "canto-chunked-v1",
+      "byteLength": 1000,
+      "chunkSize": 256,
+      "chunkCount": 3
+    },
+    "expect": {
+      "ok": true,
+      "value": {
+        "guard": false,
+        "valid": false,
+        "errorName": "ValidationError",
+        "errorField": "content.chunkCount"
+      }
+    }
+  },
+  {
+    "name": "the combined check passes a valid descriptor with a generation",
+    "operation": "guardAndValidateChunkedAttachmentContent",
+    "input": {
+      "format": "canto-chunked-v1",
+      "byteLength": 512,
+      "chunkSize": 256,
+      "chunkCount": 2,
+      "generation": "gen-7"
+    },
+    "expect": {
+      "ok": true,
+      "value": { "guard": true, "valid": true, "errorName": null, "errorField": null }
+    }
+  }
+]

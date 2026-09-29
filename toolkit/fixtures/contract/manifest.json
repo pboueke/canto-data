@@ -1,0 +1,100 @@
+[
+  {
+    "name": "current manifest parses and unknown fields are dropped",
+    "operation": "parseManifest",
+    "input": {
+      "json": "{\"version\":1,\"schemaVersion\":\"0.17.0\",\"appVersion\":\"2.1.0\",\"exportDate\":\"2026-02-01T10:00:00.000Z\",\"encrypted\":true,\"salt\":\"c2FsdA==\",\"kdfIterations\":100000,\"journalTitle\":\"Field Notes\",\"futureField\":true}"
+    },
+    "expect": {
+      "ok": true,
+      "value": {
+        "version": 1,
+        "schemaVersion": "0.17.0",
+        "appVersion": "2.1.0",
+        "exportDate": "2026-02-01T10:00:00.000Z",
+        "encrypted": true,
+        "salt": "c2FsdA==",
+        "kdfIterations": 100000,
+        "journalTitle": "Field Notes"
+      }
+    }
+  },
+  {
+    "name": "legacy manifest without schemaVersion defaults to 0.16.0",
+    "operation": "parseManifest",
+    "input": {
+      "json": "{\"version\":1,\"appVersion\":\"1.0.0\",\"exportDate\":\"2025-01-01T00:00:00.000Z\",\"encrypted\":false,\"journalTitle\":\"Legacy\"}"
+    },
+    "expect": {
+      "ok": true,
+      "value": {
+        "version": 1,
+        "schemaVersion": "0.16.0",
+        "appVersion": "1.0.0",
+        "exportDate": "2025-01-01T00:00:00.000Z",
+        "encrypted": false,
+        "journalTitle": "Legacy"
+      }
+    }
+  },
+  {
+    "name": "manifest with an unknown format version is rejected",
+    "operation": "parseManifest",
+    "input": {
+      "json": "{\"version\":2,\"appVersion\":\"1.0.0\",\"exportDate\":\"2025-01-01T00:00:00.000Z\",\"encrypted\":false,\"journalTitle\":\"Future\"}"
+    },
+    "expect": {
+      "ok": false,
+      "error": {
+        "name": "ValidationError",
+        "field": "manifest.version",
+        "expected": "1",
+        "received": "2"
+      }
+    }
+  },
+  {
+    "name": "manifest that is not JSON is rejected",
+    "operation": "parseManifest",
+    "input": { "json": "{" },
+    "expect": {
+      "ok": false,
+      "error": {
+        "name": "ValidationError",
+        "field": "manifest",
+        "expected": "valid JSON",
+        "received": "parse error"
+      }
+    }
+  },
+  {
+    "name": "manifest that is an array is rejected",
+    "operation": "parseManifest",
+    "input": { "json": "[]" },
+    "expect": {
+      "ok": false,
+      "error": {
+        "name": "ValidationError",
+        "field": "manifest",
+        "expected": "object",
+        "received": "object"
+      }
+    }
+  },
+  {
+    "name": "manifest without appVersion is rejected",
+    "operation": "parseManifest",
+    "input": {
+      "json": "{\"version\":1,\"exportDate\":\"2025-01-01T00:00:00.000Z\",\"encrypted\":false,\"journalTitle\":\"Missing\"}"
+    },
+    "expect": {
+      "ok": false,
+      "error": {
+        "name": "ValidationError",
+        "field": "manifest.appVersion",
+        "expected": "string",
+        "received": "undefined"
+      }
+    }
+  }
+]

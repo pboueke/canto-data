@@ -1,6 +1,6 @@
 {
   "name": "canto-data",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "description": "Canto journal data model — types, validation, versioning, and format utilities",
   "license": "MIT",
   "main": "dist/index.js",
@@ -37,14 +37,15 @@
   ],
   "scripts": {
     "build": "tsc",
+    "typecheck": "tsc -p tsconfig.typecheck.json --noEmit",
     "test": "jest",
     "test:coverage": "jest --coverage",
-    "test:ci": "jest --coverage --ci",
-    "verify:repo": "sh ./scripts/verify-repo.sh",
-    "format": "prettier --write \"**/*.{ts,json,md}\"",
-    "format:check": "prettier --check \"**/*.{ts,json,md}\"",
-    "prepare": "husky",
-    "prepublishOnly": "npm run build && npm run verify:repo"
+    "test:ci": "jest --coverage --ci --json --outputFile=coverage/jest-results.json",
+    "verify:repo": "make verify",
+    "format": "prettier --write \"**/*.{ts,js,mjs,cjs,json,md,yml,yaml,astro}\"",
+    "format:check": "prettier --check \"**/*.{ts,js,mjs,cjs,json,md,yml,yaml,astro}\"",
+    "lint": "eslint .",
+    "prepublishOnly": "make verify"
   },
   "keywords": [
     "canto",
@@ -61,17 +62,19 @@
     "node": ">=18"
   },
   "devDependencies": {
+    "@astrojs/starlight": "^0.42.4",
+    "@eslint/js": "10.0.1",
     "@types/jest": "^30.0.0",
-    "husky": "^9.1.7",
+    "astro": "^7.3.5",
+    "esbuild": "0.28.2",
+    "eslint": "10.11.0",
+    "globals": "17.12.0",
     "jest": "^30.3.0",
-    "lint-staged": "^16.3.3",
+    "playwright-core": "1.63.0",
     "prettier": "^3.8.1",
+    "prettier-plugin-astro": "^1.1.0",
     "ts-jest": "^29.4.6",
-    "typescript": "^5.9.3"
-  },
-  "lint-staged": {
-    "*.{ts,json,md}": [
-      "prettier --write"
-    ]
+    "typescript": "^5.9.3",
+    "typescript-eslint": "8.71.0"
   }
 }

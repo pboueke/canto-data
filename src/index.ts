@@ -12,13 +12,13 @@ export type {
   JournalContent,
   Filter,
   SyncProvider,
-} from "./types";
+} from './types';
 
 export {
   CHUNKED_ATTACHMENT_CONTENT_FORMAT,
   DEFAULT_JOURNAL_SETTINGS,
   pageToPreview,
-} from "./types";
+} from './types';
 
 // Version
 export {
@@ -27,7 +27,7 @@ export {
   needsMigration,
   isFutureVersion,
   isMajorUpgrade,
-} from "./version";
+} from './version';
 
 // Validation
 export {
@@ -47,18 +47,14 @@ export {
   validateJournalSettings,
   validateJournal,
   validateJournalContent,
-} from "./validation";
+} from './validation';
 
 // Migration
-export type { Migration, MigrationResult } from "./migration";
-export { migrateIfNeeded } from "./migration";
+export type { Migration, MigrationResult } from './migration';
+export { migrateIfNeeded } from './migration';
 
 // Format
-export type {
-  ExportManifest,
-  AttachmentEntry,
-  BuildManifestOptions,
-} from "./format";
+export type { ExportManifest, AttachmentEntry, BuildManifestOptions } from './format';
 export {
   buildExportManifest,
   parseManifest,
@@ -66,4 +62,4 @@ export {
   rewriteAttachmentPaths,
   serializePages,
   deserializePages,
-} from "./format";
+} from './format';

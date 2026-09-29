@@ -1,5 +1,5 @@
-import { SCHEMA_VERSION, compareVersions, isFutureVersion } from "./version";
-import { MIGRATIONS } from "./migrations/index";
+import { SCHEMA_VERSION, compareVersions, isFutureVersion } from './version';
+import { MIGRATIONS } from './migrations/index';
 
 export interface Migration {
   from: string;
@@ -22,11 +22,8 @@ export interface MigrationResult {
  * - Migrations apply in sequence (0.16.0 → 0.17.0 → ...).
  * - Throws if the data is from a future version (can't downgrade).
  */
-export function migrateIfNeeded(
-  data: unknown,
-  fromVersion?: string,
-): MigrationResult {
-  const version = fromVersion ?? "0.16.0";
+export function migrateIfNeeded(data: unknown, fromVersion?: string): MigrationResult {
+  const version = fromVersion ?? '0.16.0';
 
   if (isFutureVersion(version)) {
     throw new Error(

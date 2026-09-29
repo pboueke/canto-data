@@ -1,0 +1,13 @@
+/* Site-level presentation tweaks for the canto-data documentation site.
+ *
+ * Starlight ships a complete theme; this file adds only small hooks and stays
+ * dependency-free (no web fonts, no CDN imports). */
+:root {
+  --canto-accent: #b0602b;
+}
+
+/* The version marker rendered on the landing page. */
+.site-version {
+  color: var(--sl-color-gray-3);
+  font-size: var(--sl-text-sm);
+}

@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+# Element: docs/elements/10-hooks.md
+#
+# Full gate before a push. CI from a fresh checkout is the bypass-resistant
+# backstop for people who use --no-verify.
+set -euo pipefail
+
+root="$(git rev-parse --show-toplevel)"
+cd "$root"
+echo "pre-push: running the full gate (make verify); bypass with --no-verify" >&2
+exec make --no-print-directory verify

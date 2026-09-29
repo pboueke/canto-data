@@ -1,0 +1,131 @@
+[
+  {
+    "name": "legacy 0.16.0 data migrates to 0.19.0 and drops the dead setting",
+    "operation": "migrateIfNeeded",
+    "input": {
+      "fromVersion": "0.16.0",
+      "data": {
+        "id": "journal-legacy",
+        "settings": { "use24h": true, "showMarkdownPlaceholder": true },
+        "pages": []
+      }
+    },
+    "expect": {
+      "ok": true,
+      "value": {
+        "data": {
+          "id": "journal-legacy",
+          "settings": { "use24h": true },
+          "pages": []
+        },
+        "migrated": true,
+        "fromVersion": "0.16.0",
+        "toVersion": "0.19.0"
+      }
+    }
+  },
+  {
+    "name": "omitting fromVersion treats data as legacy 0.16.0",
+    "operation": "migrateIfNeeded",
+    "input": {
+      "data": {
+        "settings": { "showMarkdownPlaceholder": true }
+      }
+    },
+    "expect": {
+      "ok": true,
+      "value": {
+        "data": {
+          "settings": {}
+        },
+        "migrated": true,
+        "fromVersion": "0.16.0",
+        "toVersion": "0.19.0"
+      }
+    }
+  },
+  {
+    "name": "0.17.0 data walks the two no-op migrations to 0.19.0",
+    "operation": "migrateIfNeeded",
+    "input": {
+      "fromVersion": "0.17.0",
+      "data": { "id": "journal-017", "pages": [], "settings": { "use24h": false } }
+    },
+    "expect": {
+      "ok": true,
+      "value": {
+        "data": { "id": "journal-017", "pages": [], "settings": { "use24h": false } },
+        "migrated": true,
+        "fromVersion": "0.17.0",
+        "toVersion": "0.19.0"
+      }
+    }
+  },
+  {
+    "name": "0.18.0 data walks the final no-op migration to 0.19.0",
+    "operation": "migrateIfNeeded",
+    "input": {
+      "fromVersion": "0.18.0",
+      "data": { "id": "journal-018", "pages": [], "settings": { "use24h": true } }
+    },
+    "expect": {
+      "ok": true,
+      "value": {
+        "data": { "id": "journal-018", "pages": [], "settings": { "use24h": true } },
+        "migrated": true,
+        "fromVersion": "0.18.0",
+        "toVersion": "0.19.0"
+      }
+    }
+  },
+  {
+    "name": "current 0.19.0 data passes through without migration",
+    "operation": "migrateIfNeeded",
+    "input": {
+      "fromVersion": "0.19.0",
+      "data": { "id": "journal-current", "pages": [], "settings": { "use24h": false } }
+    },
+    "expect": {
+      "ok": true,
+      "value": {
+        "data": { "id": "journal-current", "pages": [], "settings": { "use24h": false } },
+        "migrated": false,
+        "fromVersion": "0.19.0",
+        "toVersion": "0.19.0"
+      }
+    }
+  },
+  {
+    "name": "future 0.20.0 data is rejected instead of downgraded",
+    "operation": "migrateIfNeeded",
+    "input": { "fromVersion": "0.20.0", "data": {} },
+    "expect": {
+      "ok": false,
+      "error": {
+        "name": "Error",
+        "messageContains": "Cannot open data with schema version 0.20.0"
+      }
+    }
+  },
+  {
+    "name": "a version without a migration path is rejected",
+    "operation": "migrateIfNeeded",
+    "input": { "fromVersion": "0.15.0", "data": {} },
+    "expect": {
+      "ok": false,
+      "error": {
+        "name": "Error",
+        "messageContains": "No migration path from 0.15.0 to 0.19.0"
+      }
+    }
+  },
+  {
+    "name": "a non-semver version is rejected",
+    "operation": "migrateIfNeeded",
+    "input": { "fromVersion": "banana", "data": {} },
+    "expect": {
+      "ok": false,
+      "error": { "name": "Error", "messageContains": "Invalid schema version" }
+    }
+  }
+]

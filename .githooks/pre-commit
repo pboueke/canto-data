@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+# Element: docs/elements/10-hooks.md
+#
+# Fast, read-only staged-change checks. Never stages or rewrites the index.
+set -euo pipefail
+
+root="$(git rev-parse --show-toplevel)"
+cd "$root"
+exec make --no-print-directory hook-pre-commit

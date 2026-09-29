@@ -1,0 +1,258 @@
+[
+  {
+    "name": "current journal content validates and is preserved",
+    "operation": "validateJournalContent",
+    "input": {
+      "id": "journal-1",
+      "title": "Field Notes",
+      "icon": "book",
+      "date": "2026-01-01T00:00:00.000Z",
+      "secure": false,
+      "salt": "c2FsdA==",
+      "schemaVersion": "0.17.0",
+      "version": 3,
+      "unknownExtra": { "keep": true },
+      "settings": {
+        "use24h": false,
+        "previewTags": true,
+        "previewThumbnail": true,
+        "previewIcons": true,
+        "filterBar": true,
+        "sort": "descending",
+        "autoLocation": false,
+        "remoteSync": false,
+        "autoSync": false
+      },
+      "pages": [
+        {
+          "id": "page-1",
+          "text": "First line\nSecond line",
+          "date": "2026-01-02T09:30:00.000Z",
+          "location": { "latitude": 51.5, "longitude": -0.12 },
+          "tags": ["travel"],
+          "files": [
+            {
+              "id": "file-1",
+              "path": "/data/files/file-1.pdf",
+              "name": "boarding-pass.pdf",
+              "type": "file",
+              "encrypted": false,
+              "deleted": false,
+              "size": 1024
+            }
+          ],
+          "images": [],
+          "comments": [],
+          "modified": 1767327000000,
+          "deleted": false,
+          "thumbnail": "data:image/png;base64,AAAA"
+        }
+      ]
+    },
+    "expect": { "ok": true, "value": "$input" }
+  },
+  {
+    "name": "legacy journal content without schemaVersion or version is accepted and preserved",
+    "operation": "validateJournalContent",
+    "input": {
+      "id": "journal-legacy",
+      "title": "Legacy",
+      "icon": "book",
+      "date": "2025-01-01T00:00:00.000Z",
+      "secure": true,
+      "salt": "c2FsdA==",
+      "unknownExtra": true,
+      "pages": [],
+      "settings": {
+        "use24h": true,
+        "previewTags": false,
+        "previewThumbnail": false,
+        "previewIcons": false,
+        "filterBar": false,
+        "sort": "ascending",
+        "autoLocation": true,
+        "remoteSync": false,
+        "autoSync": false
+      }
+    },
+    "expect": { "ok": true, "value": "$input" }
+  },
+  {
+    "name": "journal validator rejects a missing title",
+    "operation": "validateJournalContent",
+    "input": {
+      "id": "journal-2",
+      "icon": "book",
+      "date": "2026-01-01T00:00:00.000Z",
+      "secure": false,
+      "salt": "c2FsdA==",
+      "pages": [],
+      "settings": {
+        "use24h": false,
+        "previewTags": true,
+        "previewThumbnail": true,
+        "previewIcons": true,
+        "filterBar": true,
+        "sort": "descending",
+        "autoLocation": false,
+        "remoteSync": false,
+        "autoSync": false
+      }
+    },
+    "expect": {
+      "ok": false,
+      "error": {
+        "name": "ValidationError",
+        "field": "journal.title",
+        "expected": "string",
+        "received": "undefined"
+      }
+    }
+  },
+  {
+    "name": "journal settings reject an unsupported sort value",
+    "operation": "validateJournalContent",
+    "input": {
+      "id": "journal-3",
+      "title": "Bad Sort",
+      "icon": "book",
+      "date": "2026-01-01T00:00:00.000Z",
+      "secure": false,
+      "salt": "c2FsdA==",
+      "pages": [],
+      "settings": {
+        "use24h": false,
+        "previewTags": true,
+        "previewThumbnail": true,
+        "previewIcons": true,
+        "filterBar": true,
+        "sort": "sideways",
+        "autoLocation": false,
+        "remoteSync": false,
+        "autoSync": false
+      }
+    },
+    "expect": {
+      "ok": false,
+      "error": {
+        "name": "ValidationError",
+        "field": "journal.settings.sort",
+        "expected": "one of [\"ascending\",\"descending\",\"none\"]",
+        "received": "\"sideways\""
+      }
+    }
+  },
+  {
+    "name": "page validator rejects an empty tag with the caller-supplied path",
+    "operation": "validatePage",
+    "input": {
+      "path": "pages[0]",
+      "value": {
+        "id": "page-2",
+        "text": "x",
+        "date": "2026-01-03T00:00:00.000Z",
+        "tags": ["ok", "  "],
+        "files": [],
+        "images": [],
+        "comments": [],
+        "modified": 1,
+        "deleted": false
+      }
+    },
+    "expect": {
+      "ok": false,
+      "error": {
+        "name": "ValidationError",
+        "field": "pages[0].tags[1]",
+        "expected": "non-empty string",
+        "received": "\"\""
+      }
+    }
+  },
+  {
+    "name": "page validator rejects a non-numeric modified value",
+    "operation": "validatePage",
+    "input": {
+      "path": "page",
+      "value": {
+        "id": "page-3",
+        "text": "x",
+        "date": "2026-01-03T00:00:00.000Z",
+        "tags": [],
+        "files": [],
+        "images": [],
+        "comments": [],
+        "modified": "soon",
+        "deleted": false
+      }
+    },
+    "expect": {
+      "ok": false,
+      "error": {
+        "name": "ValidationError",
+        "field": "page.modified",
+        "expected": "number",
+        "received": "string"
+      }
+    }
+  },
+  {
+    "name": "the shallow page guard accepts what the structural validator rejects",
+    "operation": "guardAndValidatePage",
+    "input": {
+      "id": "page-4",
+      "text": "x",
+      "date": "2026-01-03T00:00:00.000Z",
+      "tags": ["  "],
+      "files": [],
+      "images": [],
+      "comments": [],
+      "modified": 1,
+      "deleted": false
+    },
+    "expect": {
+      "ok": true,
+      "value": {
+        "guard": true,
+        "valid": false,
+        "errorName": "ValidationError",
+        "errorField": "page.tags[0]"
+      }
+    }
+  },
+  {
+    "name": "the shallow journal guard accepts what the structural validator rejects",
+    "operation": "guardAndValidateJournalContent",
+    "input": {
+      "id": "journal-4",
+      "title": "Shallow",
+      "icon": "book",
+      "date": "2026-01-01T00:00:00.000Z",
+      "secure": false,
+      "salt": "c2FsdA==",
+      "pages": [],
+      "settings": {}
+    },
+    "expect": {
+      "ok": true,
+      "value": {
+        "guard": true,
+        "valid": false,
+        "errorName": "ValidationError",
+        "errorField": "journal.settings.use24h"
+      }
+    }
+  },
+  {
+    "name": "the journal content guard rejects a bare journal",
+    "operation": "isJournalContentGuard",
+    "input": {
+      "id": "journal-5",
+      "title": "Bare",
+      "icon": "book",
+      "date": "2026-01-01T00:00:00.000Z",
+      "secure": false
+    },
+    "expect": { "ok": true, "value": false }
+  }
+]

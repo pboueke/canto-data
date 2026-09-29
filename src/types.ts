@@ -11,7 +11,7 @@ export interface Comment {
   date: string; // ISO 8601
 }
 
-export const CHUNKED_ATTACHMENT_CONTENT_FORMAT = "canto-chunked-v1" as const;
+export const CHUNKED_ATTACHMENT_CONTENT_FORMAT = 'canto-chunked-v1' as const;
 
 export interface ChunkedAttachmentContent {
   format: typeof CHUNKED_ATTACHMENT_CONTENT_FORMAT;
@@ -35,7 +35,7 @@ export interface Attachment {
   id: string;
   path: string;
   name: string;
-  type: "image" | "file";
+  type: 'image' | 'file';
   encrypted: boolean;
   size?: number; // bytes
   deleted: boolean;
@@ -71,7 +71,7 @@ export interface PagePreview {
   thumbnail?: string;
 }
 
-export type SyncProvider = "gdrive"; // extend as providers are added
+export type SyncProvider = 'gdrive'; // extend as providers are added
 
 export interface JournalSettings {
   use24h: boolean;
@@ -79,7 +79,7 @@ export interface JournalSettings {
   previewThumbnail: boolean;
   previewIcons: boolean;
   filterBar: boolean;
-  sort: "ascending" | "descending" | "none";
+  sort: 'ascending' | 'descending' | 'none';
   autoLocation: boolean;
   remoteSync: boolean;
   syncProvider?: SyncProvider;
@@ -126,23 +126,19 @@ export const DEFAULT_JOURNAL_SETTINGS: JournalSettings = {
   previewThumbnail: true,
   previewIcons: true,
   filterBar: true,
-  sort: "descending",
+  sort: 'descending',
   autoLocation: false,
   remoteSync: false,
   autoSync: false,
 };
 
 export function pageToPreview(page: Page): PagePreview {
-  const firstLine =
-    page.text.split("\n").find((l) => l.trim().length > 0) ?? "";
+  const firstLine = page.text.split('\n').find((l) => l.trim().length > 0) ?? '';
   const previewText = firstLine.substring(0, 120);
 
-  const firstNonEncryptedImage = page.images.find(
-    (img) => !img.encrypted && !img.deleted,
-  );
+  const firstNonEncryptedImage = page.images.find((img) => !img.encrypted && !img.deleted);
 
-  const searchText =
-    page.text.toLowerCase() + " " + page.tags.join(" ").toLowerCase();
+  const searchText = page.text.toLowerCase() + ' ' + page.tags.join(' ').toLowerCase();
 
   return {
     id: page.id,

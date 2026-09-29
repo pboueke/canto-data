@@ -3,6 +3,8 @@ export type {
   GeoLocation,
   Comment,
   Attachment,
+  ChunkedAttachmentContent,
+  AttachmentContent,
   Page,
   PagePreview,
   JournalSettings,
@@ -10,9 +12,13 @@ export type {
   JournalContent,
   Filter,
   SyncProvider,
-} from './types';
+} from "./types";
 
-export { DEFAULT_JOURNAL_SETTINGS, pageToPreview } from './types';
+export {
+  CHUNKED_ATTACHMENT_CONTENT_FORMAT,
+  DEFAULT_JOURNAL_SETTINGS,
+  pageToPreview,
+} from "./types";
 
 // Version
 export {
@@ -21,7 +27,7 @@ export {
   needsMigration,
   isFutureVersion,
   isMajorUpgrade,
-} from './version';
+} from "./version";
 
 // Validation
 export {
@@ -29,24 +35,30 @@ export {
   isGeoLocation,
   isComment,
   isAttachment,
+  isChunkedAttachmentContent,
   isPage,
   isJournal,
   isJournalContent,
   validateGeoLocation,
   validateComment,
   validateAttachment,
+  validateChunkedAttachmentContent,
   validatePage,
   validateJournalSettings,
   validateJournal,
   validateJournalContent,
-} from './validation';
+} from "./validation";
 
 // Migration
-export type { Migration, MigrationResult } from './migration';
-export { migrateIfNeeded } from './migration';
+export type { Migration, MigrationResult } from "./migration";
+export { migrateIfNeeded } from "./migration";
 
 // Format
-export type { ExportManifest, AttachmentEntry, BuildManifestOptions } from './format';
+export type {
+  ExportManifest,
+  AttachmentEntry,
+  BuildManifestOptions,
+} from "./format";
 export {
   buildExportManifest,
   parseManifest,
@@ -54,4 +66,4 @@ export {
   rewriteAttachmentPaths,
   serializePages,
   deserializePages,
-} from './format';
+} from "./format";
